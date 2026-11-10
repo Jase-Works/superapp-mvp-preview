@@ -1,0 +1,35 @@
+# Super APP MVP mockup 預覽站：push 到 site 分支就部署到 GitHub Pages。
+# Google 地圖金鑰放在 repo secret GOOGLE_MAPS_API_KEY，部署時才寫進 maps_key.js，不進 git 歷史。
+# 金鑰在 Google Cloud 限制只能從 https://jase-works.github.io/* 與 http://localhost:8765/* 使用。
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [site]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write maps key
+        env:
+          KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: |
+          printf 'window.GMAPS_KEY = "%s";\n' "$KEY" > maps_key.js
+          rm -rf .github
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4
