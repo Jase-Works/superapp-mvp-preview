@@ -193,7 +193,7 @@ const PASSES = [
   { cat: 'id', id: 'kh', iss: '高雄市政府', nm: '高雄數位市民', st: '已實名核驗', g: ['#2346D8', '#0F5A45'], lb1: '持有人', v1: '林○明', lb2: '有效至', v2: '2027/10/31', no: 'KH ••• 0412', chip: true,
     tags: [['🏠', '設籍三民區', '戶政 · 住戶停車、區域活動優先'], ['🤝', '志工', '社會局 · 36 小時 · 場館志工優惠']],
     fields: [['發證機關', '高雄市政府', ''], ['已授權給 Super APP', '實名核驗標記、身分標籤', 'ok'], ['不會提供', '家庭收入、病歷等非必要資料', 'no']] },
-  { cat: 'tr', id: 'tp', iss: 'MeNGo 票證中台', nm: '南高屏 TPASS 定期票', st: '有效', g: ['#2C4DA6', '#13235A'], lb1: '適用', v1: '捷運・公車・輕軌', lb2: '效期至', v2: '2026/12/06', no: 'MG ••• 7731',
+  { cat: 'tr', id: 'tp', iss: 'MeNGo 票證中台', nm: '南高屏 TPASS 定期票', st: '有效', g: ['#2C4DA6', '#13235A'], lb1: '適用', v1: '捷運・公車・輕軌', lb2: '效期至', v2: '2026/11/15', no: 'MG ••• 7731',
     fields: [['發卡', 'MeNGo（高雄市交通局）', ''], ['本月搭乘', '捷運 18 次・公車 9 次', ''], ['離線可刷', '剩 3 次', 'ok']] },
   { cat: 'tr', id: 'pk', iss: '高雄市交通局', nm: '住戶路邊停車證（示意）', st: '有效', g: ['#475569', '#1E293B'], lb1: '區域', v1: '三民區 · 灣成里', lb2: '效期至', v2: '2027/03/31', no: 'PK ••• 5530',
     fields: [['核發', '高雄市交通局（示意）', ''], ['車牌', 'ABC-•••8', ''], ['可停路段', '住家周邊 500 公尺', 'ok']] },
@@ -229,7 +229,7 @@ def({
   steps: ['各城市的市民憑證、票卡、活動入場，收在同一處', '點高雄數位市民，出示動態身分碼', '授權了什麼、沒授權什麼，一眼看清楚', '收回卡片', '到台北出差：新增台北通', '只取必要欄位，同意後收進憑證夾'],
   note: `<b>像 Apple 錢包一樣收憑證</b><br>各城市的數位市民、MeNGo 定期票、活動入場憑證疊在一起；點一張就放大，出示 <span class="k">30 秒換一次</span>的動態碼。<br><br>每張憑證都寫清楚<b>授權給 Super APP 的欄位</b>與<b>不會提供的資料</b>，可一鍵解除綁定。<br><br>右上 ＋ 可加入其他城市的市民憑證。<span class="k">跨城介接需各市同意，畫面為示意。</span>`,
   render(opts = {}) {
-    const ctx = { passes: PASSES.slice().concat(Object.keys(STATE_PASSES).filter(k => STATE[k]).map(k => STATE_PASSES[k])), open: -1, cat: opts.cat || 'id' };
+    const ctx = { passes: PASSES.map(p => (p.id === 'tp' && STATE.renewed ? { ...p, v2: '2026/12/15' } : p)).concat(Object.keys(STATE_PASSES).filter(k => STATE[k]).map(k => STATE_PASSES[k])), open: -1, cat: opts.cat || 'id' };
     ctx.view = () => ctx.passes.filter(p => p.cat === ctx.cat);
     $screen.innerHTML = `<div class="wal">
       ${SB()}
@@ -343,13 +343,23 @@ def({
   },
 });
 
+/* 替你做過的事：系統替市民做的動作與用到的資料（也是給政府的稽核紀錄）。內容對應其他情境的故事，皆為示意。 */
+const DID_TYPE = { '提醒': 'p-blue', '帶入資料': 'p-orange', '送出': 'p-green', '續購': 'p-gray' };
+const DID = [
+  { tm: '11/12 08:00', ty: '續購', t: '定期票一鍵續購，前往 MeNGo 付款（付款在 MeNGo 完成）' },
+  { tm: '11/12 07:05', ty: '提醒', t: '通勤路線施工提醒：博愛二路 9:00 起封閉一線道' },
+  { tm: '11/12 06:58', ty: '提醒', t: '慣用公車誤點，建議改搭捷運紅線' },
+  { tm: '11/9', ty: '送出', t: '拍照陳情已送出，案號 KH-1999-20261109-088', data: '手機號碼、所在位置' },
+  { tm: '11/7', ty: '帶入資料', t: '駁二港邊週末市集報名，帶入姓名', data: '姓名' },
+];
+
 /* =====================================================================
    我的：身分、授權、提醒、案件（取代原本放 AI 客服的位置）
    ===================================================================== */
 def({
   id: 'me', no: '👤', tag: 'MVP · 改', title: '我的：身分、授權與提醒',
-  steps: ['一個帳號，看清楚自己在各城市的身分', '授權了哪些資料、誰用過，都查得到', '主動提醒收不收，自己決定', '報修案件進度追得到', '字太小？一鍵放大'],
-  note: '<b>「我的」管的是「我跟城市的關係」</b><br>不是會員中心，是一個市民的控制台：<br>・<span class="k">以城市收攏</span>：每座城市一格，裡面是那座城市的身分、報名的活動、陳情案件、票卡<br>・授權給 Super APP 哪些欄位、<span class="k">誰在什麼時候用過</span><br>・主動提醒逐項開關（豪雨移車會用到住家位置，預設要問過才開）<br>・1999 案件進度<br><br>點數、客服、設定放在最下面。',
+  steps: ['一個帳號，看清楚自己在各城市的身分', '授權了哪些資料、誰用過，都查得到', '主動提醒收不收，自己決定', '報修案件進度追得到', '系統替你做過的事，一筆一筆查得到'],
+  note: '<b>「我的」管的是「我跟城市的關係」</b><br>不是會員中心，是一個市民的控制台：<br>・<span class="k">以城市收攏</span>：每座城市一格，裡面是那座城市的身分、報名的活動、陳情案件、票卡<br>・授權給 Super APP 哪些欄位、<span class="k">誰在什麼時候用過</span><br>・主動提醒逐項開關（豪雨移車會用到住家位置，預設要問過才開）<br>・1999 案件進度<br>・<span class="k">系統替你做過的事，一筆一筆查得到</span>：提醒、帶入資料、送出、續購都有紀錄，用了哪些資料也寫清楚，覺得不對可以回報。這也是給政府看的稽核紀錄<br><br>「替你做過的事」記系統的行為；「最近誰用過」記哪個服務用了你的資料。<br><br>點數、客服、設定放在最下面。',
   render(opts = {}) {
     const row = (ic, t, sub, right, k = '') => `<div class="me-row"${k ? ` data-k="${k}"` : ''}><span class="mi">${ic}</span><div class="mt"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</div>${right}</div>`;
     const tog = (k, onn) => `<div class="tog${onn ? ' on' : ''}" data-k="${k}" style="cursor:pointer;flex:none"></div>`;
@@ -386,7 +396,7 @@ def({
           </div>
           <div class="cp-sec">
             <div class="cp-t">🎫 票卡與憑證<span>2</span></div>
-            ${row('🚋', '南高屏 TPASS 定期票', '效期至 2026/12/06 · 本月搭乘 27 次', '<span class="small">›</span>', 'pass1')}
+            ${row('🚋', '南高屏 TPASS 定期票', `效期至 ${STATE.renewed ? '2026/12/15' : '2026/11/15'} · 本月搭乘 27 次`, '<span class="small">›</span>', 'pass1')}
             ${row('🎟️', '駁二市集入場憑證', '11/15 出示即可入場', '<span class="small">›</span>', 'pass2')}
           </div>
         </div>
@@ -398,6 +408,18 @@ def({
         <div class="me-card cpanel" data-cp="txg" style="display:none">
           <div class="cp-head"><div><b>🪪 台中通</b><small>尚未綁定 · 公車、停車不用綁也能用</small></div><span class="pill p-blue" data-bind style="cursor:pointer">綁定 ›</span></div>
           <div class="cp-empty">在台中還沒有報名或陳情紀錄。<br>綁定台中通後，在台中的紀錄都會收在這裡。</div>
+        </div>
+
+        <div class="me-h">🗂 替你做過的事</div>
+        <div class="me-card" data-k="did">
+          <div class="small" style="padding:10px 2px 2px">系統替你做的每一件事和用到的資料，都記在這裡</div>
+          ${DID.map((d, i) => `<div class="did-row">
+            <div class="did-tm">${d.tm}</div>
+            <div class="did-bd"><div class="did-h"><span class="pill ${DID_TYPE[d.ty]}">${d.ty}</span>${i === 0 && STATE.renewed ? '<span class="pill p-green">剛剛</span>' : ''}</div>
+              <div class="did-t">${d.t}</div>${d.data ? `<div class="did-d">用到的資料：${d.data}</div>` : ''}</div>
+            <span class="did-no" data-notme="${i}">這不是我</span>
+          </div>`).join('')}
+          <div class="row" style="gap:8px;margin:10px 0 12px"><span class="me-btn" data-k="didall">查看完整紀錄</span><span class="me-btn" data-k="diddl">下載紀錄</span></div>
         </div>
 
         <div class="me-h">隱私與授權</div>
@@ -419,6 +441,7 @@ def({
           ${row('🚧', '通勤路線施工', '出門前一晚提醒', tog('t2', true))}
           ${row('🌧️', '豪雨：住家附近積水', '需要用到住家位置', tog('t3', true))}
           ${row('🎪', '附近的在地活動', '每週最多 2 則', tog('t4', true), 'r4')}
+          ${row('🎫', '定期票到期', '到期前 3 天提醒，一鍵續購', tog('t5', true))}
         </div>
 
         <div class="me-card" style="margin-top:12px">
@@ -437,6 +460,9 @@ def({
       if (t.dataset.k === 'big') P.$('me').classList.toggle('bigtext', t.classList.contains('on'));
       else if (t.dataset.k === 't4') toast(t.classList.contains('on') ? '🎪 已開啟：附近的在地活動' : '🔕 不再推播在地活動<div class="small" style="color:#AEBBDD;margin-top:3px">其他提醒照常</div>');
     }));
+    $screen.querySelectorAll('[data-notme]').forEach(x => x.addEventListener('click', () => toast('✓ 已回報，我們會確認這筆紀錄')));
+    P.$('didall').addEventListener('click', () => toast('🗂 完整紀錄（示意）<div class="small" style="color:#AEBBDD;margin-top:3px">可依城市、類型、日期篩選</div>'));
+    P.$('diddl').addEventListener('click', () => toast('⬇ 紀錄已匯出（示意）<div class="small" style="color:#AEBBDD;margin-top:3px">含時間、動作與用到的資料</div>'));
     P.$('logbtn').addEventListener('click', () => P.$('log').classList.toggle('glow'));
     P.$('ev1').addEventListener('click', () => go('wallet', { cat: 'ev' }));
     P.$('pass1').addEventListener('click', () => go('wallet', { cat: 'tr' }));

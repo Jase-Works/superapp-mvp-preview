@@ -228,3 +228,20 @@ body.app-body{background:radial-gradient(1200px 700px at 70% 20%,#16302A 0%,#0B1
 .pl .on{color:var(--green-d);font-weight:800}
 .mepg.bigtext .me-scroll{zoom:1.15}
 .mepg .pill{white-space:nowrap;flex:none}
+
+/* v11：我的 → 替你做過的事（時間軸） */
+.did-row{display:flex;gap:10px;padding:10px 0;position:relative}
+.did-row + .did-row{border-top:1px solid var(--line)}
+.did-tm{width:62px;flex:none;font-size:11px;font-weight:800;color:var(--ink);padding-top:2px;line-height:1.35}
+.did-bd{flex:1;min-width:0;border-left:2px solid #DCE3F5;padding-left:10px}
+.did-h{display:flex;gap:4px;flex-wrap:wrap}
+.did-t{font-size:12.5px;color:var(--ink);font-weight:700;margin-top:4px;line-height:1.45}
+.did-d{font-size:11px;color:var(--mute);margin-top:3px}
+.did-no{flex:none;font-size:11px;color:var(--green-d);font-weight:700;cursor:pointer;padding-top:2px;white-space:nowrap}
+.did-no:active{opacity:.6}
+/* v11：MeNGo Mini App 續購畫面（示意） */
+.mg-page{z-index:20;background:var(--surf,#F5F7FB)}
+.mg-bar{display:flex;align-items:center;gap:8px;padding:6px 14px 10px;border-bottom:1px solid var(--line);background:#fff}
+.mg-bar b{font-size:16px;font-weight:900;color:var(--navy)}
+.mg-bar .pill{margin-left:auto}
+.mg-back{font-size:12.5px;font-weight:800;color:var(--green-d);cursor:pointer}

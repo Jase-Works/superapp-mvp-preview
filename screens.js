@@ -116,7 +116,7 @@ def({
       <div class="sub">由 MeNGo 票證中台發碼 · 捷運、公車、輕軌通用</div>
       <div class="ticket" data-k="tk">
         <div class="row" style="position:relative"><b style="font-size:16px">南高屏 TPASS 定期票</b><span class="pill p-green" style="margin-left:auto">有效</span></div>
-        <div class="small" style="color:#AEBBDD;margin-top:4px;position:relative">效期至 2026/12/06　·　已綁定 MeNGo</div>
+        <div class="small" style="color:#AEBBDD;margin-top:4px;position:relative">效期至 2026/11/15　·　已綁定 MeNGo</div>
         <div class="qrbox"><div class="qr" data-k="qr">${qrCells(7)}</div><div class="ring" data-k="ring"><span data-k="sec">30</span></div></div>
         <div style="text-align:center;font-size:12.5px;margin-top:10px;position:relative">⟳ <span data-k="sec">30</span> 秒後自動更新　·　<b>截圖無效</b></div>
       </div>
@@ -313,7 +313,7 @@ def({
 /* ---------- F-05 情境主動通知 ---------- */
 def({
   id: 'f5', grp: '主動通知與我的', no: '5', tag: 'F-05', title: '情境主動通知',
-  note: '<b>在你開口前先告訴你</b><br>慣用公車誤點給替代路線、出門前提醒施工、豪雨時提醒住家附近的人移車，並直接導航到地勢較高的停車場。<br><br>按下方「快轉」看一天裡的提醒。要收哪些提醒，在「我的 → 主動提醒」逐項開關。<br>依據：個人常用路線＋氣象署、水利署開放資料（觸發條件待團隊定案）。',
+  note: '<b>在你開口前先告訴你</b><br>慣用公車誤點給替代路線、出門前提醒施工、<span class="k">定期票到期前 3 天提醒，一鍵跳 MeNGo 續購</span>（付款在 MeNGo 完成，Super APP 不經手金流）、豪雨時提醒住家附近的人移車，並直接導航到地勢較高的停車場。<br><br>按下方「快轉」看一天裡的提醒。要收哪些提醒，在「我的 → 主動提醒」逐項開關。<br>依據：個人常用路線＋氣象署、水利署開放資料（觸發條件待團隊定案）。',
   render() {
     $screen.innerHTML = `
     <div class="lock"></div>
@@ -328,10 +328,43 @@ def({
         </div>
         <div class="bd"><b>🧭 導航中：鼎山公有停車場</b>（地勢較高）<div class="small mt6">剩 46 格 · 開車約 4 分 · 停好後回報，我會繼續盯雨勢</div></div>
       </div>
+    </div>
+    <div class="toast fx" data-k="toast" style="bottom:80px;z-index:25"></div>
+    <div class="page fx-right mg-page" data-k="mg">
+      ${SB()}
+      <div class="mg-bar"><span class="mg-back" data-k="mgback">‹ Super APP</span><b>MeNGo</b><span class="pill p-gray">Mini App · 示意</span></div>
+      <div style="padding:14px 16px 0;flex:1;overflow-y:auto">
+        <div class="small" style="font-weight:800;color:#566079">定期票續購</div>
+        <div class="ticket mt8" style="margin:8px 0 0">
+          <div class="row" style="position:relative"><b style="font-size:16px">南高屏 TPASS 定期票　30 天</b><span class="pill p-orange" style="margin-left:auto">3 天後到期</span></div>
+          <div class="small" style="color:#AEBBDD;margin-top:4px;position:relative">捷運・公車・輕軌　·　目前效期至 2026/11/15</div>
+          <div class="row" style="position:relative;margin-top:14px;align-items:flex-end"><div><div class="small" style="color:#AEBBDD">續購後效期</div><b style="font-size:14px">2026/11/16 – 2026/12/15</b></div><b style="margin-left:auto;font-size:24px">NT$999</b></div>
+        </div>
+        <div class="card mt10">
+          <div class="field"><span style="color:#64748B">卡號</span><span>MG ••• 7731</span></div>
+          <div class="field"><span style="color:#64748B">付款方式</span><span>在 MeNGo 選擇</span></div>
+        </div>
+        <div class="btn btn-green mt12" data-k="pay" style="cursor:pointer">前往 MeNGo 付款</div>
+        <div class="small mt8" style="text-align:center">付款在 MeNGo 完成，Super APP 不經手金流</div>
+        <div class="src" style="text-align:center">金額與效期依 MeNGo 公告為準（示意）</div>
+      </div>
     </div>`;
-    return {};
+    const st = { choice: null, paid: false };
+    const toast = (h) => { const t = P.$('toast'); t.innerHTML = h; t.classList.remove('in'); void t.offsetWidth; on(t); later(() => t.classList.remove('in'), 2600); };
+    st.toast = toast;
+    st.openMg = () => { st.choice = 'renew'; on(P.$('mg')); };
+    st.later = () => { st.choice = 'later'; toast('🔔 好的，明天早上 8:00 再提醒你'); };
+    P.$('mgback').onclick = () => { P.$('mg').classList.remove('in'); };
+    P.$('pay').onclick = async () => {
+      if (st.paid || st.paying) return; st.paying = true;
+      P.$('pay').textContent = 'MeNGo 付款處理中…';
+      try { await sleep(900); } catch (_) { return; }   // 中途換情境就不再更新畫面
+      P.$('mg').classList.remove('in'); st.paid = true; STATE.renewed = true;
+      toast('✓ <b>續購完成，效期延至 2026/12/15</b><div class="small" style="color:#AEBBDD;margin-top:3px">這筆紀錄會出現在「我的 → 替你做過的事」</div>');
+    };
+    return st;
   },
-  async flow() {
+  async flow(st) {
     const box = P.$('notis'), ff = P.$('ff');
     const push = async (time, title, body, acts) => {
       const e = el(`<div class="noti fx-down"><div class="h"><span class="app" style="background:#2346D8">S</span>Super APP · 主動提醒<span style="margin-left:auto">${time}</span></div><div class="t">${title}</div><div class="c">${body}</div>${acts || ''}</div>`);
@@ -343,6 +376,21 @@ def({
     ff.textContent = '⏩ 快轉到 7:05';
     await tapOn(ff, '');
     P.$('clock').textContent = '7:05'; await push('7:05', '🚧 通勤路線今天有施工', '博愛二路 9:00 起封閉一線道，建議提早 10 分鐘。');
+    ff.textContent = '⏩ 快轉到 8:00';
+    await tapOn(ff, '');
+    /* 定期票到期前 3 天：一鍵跳 MeNGo 續購，付款在 MeNGo 完成 */
+    P.$('clock').textContent = '8:00';
+    const rn = await push('8:00', '🎫 定期票 3 天後到期', '南高屏 TPASS 11/15 到期，可直接續購下個月', '<div class="acts"><span class="pri" data-k="renew" style="cursor:pointer;background:#2346D8">一鍵續購</span><span data-k="later" style="cursor:pointer">稍後提醒</span></div>');
+    rn.querySelector('[data-k="renew"]').onclick = () => { if (!st.choice) st.openMg(); };
+    rn.querySelector('[data-k="later"]').onclick = () => { if (!st.choice) st.later(); };
+    ff.style.visibility = 'hidden';
+    await guide(() => rn.querySelector('[data-k="renew"]'), '', () => st.choice);
+    if (st.choice === 'renew') {
+      await guide(() => P.$('pay'), '', () => st.paid);
+      await sleep(1600);
+    } else await sleep(1200);
+    rn.querySelector('.acts').innerHTML = st.paid ? '<span style="background:#E3F1EA;color:#2D7857">✓ 已續購，效期至 2026/12/15</span>' : '<span>明天 8:00 再提醒你</span>';
+    ff.style.visibility = '';
     ff.textContent = '⏩ 快轉到下午，豪雨特報';
     await tapOn(ff, '');
     P.$('clock').textContent = '15:20'; ff.style.display = 'none';

@@ -195,7 +195,8 @@ const tabs = (onTab, cls = '') => `<div class="tabs ${cls}">${TABS.map(([id, i, 
 const goSeg = (which, top) => `<div class="seg" style="top:${top}px"><span class="${which === 'route' ? 'on' : ''}" data-seg="f1">🧭 路線</span><span class="${which === 'poi' ? 'on' : ''}" data-seg="f3">🎪 活動・景點</span></div>`;
 
 /* 跨情境的示意狀態：在「一句話玩高雄」報名後，「我的」會跟著變 */
-const STATE = { pier2: false, yancheng: false };
+/* renewed：在 F-05 一鍵續購定期票後為 true，「我的」與「憑證夾」的效期跟著更新 */
+const STATE = { pier2: false, yancheng: false, renewed: false };
 
 const SCENES = {};
 const ORDER = [];
