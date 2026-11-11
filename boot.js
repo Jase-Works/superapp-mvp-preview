@@ -2,7 +2,7 @@
 Object.assign(SCENES.home, { grp: '一個 App 走遍城市' });
 Object.assign(SCENES.wallet, { grp: '一個 App 走遍城市' });
 Object.assign(SCENES.me, { grp: '主動通知與我的', tag: 'F-06' });
-const NAV = ['home', 'wallet', 'f2', 'f1', 'f3', 'ask', 'go', 'photo', 'play', 'lost', 'f5', 'me'];
+const NAV = ['home', 'wallet', 'f2', 'f1', 'f3', 'quest', 'ask', 'go', 'photo', 'play', 'lost', 'f5', 'me'];
 
 const $nav = document.getElementById('sideNav');
 let lastGrp = '';

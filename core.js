@@ -196,7 +196,8 @@ const goSeg = (which, top) => `<div class="seg" style="top:${top}px"><span class
 
 /* 跨情境的示意狀態：在「一句話玩高雄」報名後，「我的」會跟著變 */
 /* renewed：在 F-05 一鍵續購定期票後為 true，「我的」與「憑證夾」的效期跟著更新 */
-const STATE = { pier2: false, yancheng: false, renewed: false };
+/* quest：完成「週末城市任務」後為 true，「我的 → 替你做過的事」多一筆 */
+const STATE = { pier2: false, yancheng: false, renewed: false, quest: false };
 
 const SCENES = {};
 const ORDER = [];

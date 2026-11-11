@@ -348,7 +348,8 @@ const DID_TYPE = { '提醒': 'p-blue', '帶入資料': 'p-orange', '送出': 'p-
 /* 第一筆依 F-05 是否續購切換：續購後記「續購」，還沒續購只記到期提醒 */
 const DID_RENEWED = { tm: '11/12 08:00', ty: '續購', t: '定期票一鍵續購，前往 MeNGo 付款（付款在 MeNGo 完成）', fresh: true };
 const DID_REMIND = { tm: '11/12 08:00', ty: '提醒', t: '定期票 3 天後到期提醒（尚未續購）' };
-const didList = () => [STATE.renewed ? DID_RENEWED : DID_REMIND, ...DID];
+const DID_QUEST = { tm: '11/15 16:40', ty: '提醒', t: '週末城市任務完成，20 點入帳' };   // 只在完成週末城市任務後出現；點數沿用同一筆 20 點
+const didList = () => [...(STATE.quest ? [DID_QUEST] : []), STATE.renewed ? DID_RENEWED : DID_REMIND, ...DID];
 const DID = [
   { tm: '11/12 07:05', ty: '提醒', t: '通勤路線施工提醒：博愛二路 9:00 起封閉一線道' },
   { tm: '11/12 06:58', ty: '提醒', t: '慣用公車誤點，建議改搭捷運紅線' },
@@ -445,6 +446,7 @@ def({
           ${row('🌧️', '豪雨：住家附近積水', '需要用到住家位置', tog('t3', true))}
           ${row('🎪', '附近的在地活動', '每週最多 2 則', tog('t4', true), 'r4')}
           ${row('🎫', '定期票到期', '到期前 3 天提醒，一鍵續購', tog('t5', true))}
+          ${row('🗺️', '每週城市任務', '每週最多 1 則', tog('t6', true))}
         </div>
 
         <div class="me-card" style="margin-top:12px">

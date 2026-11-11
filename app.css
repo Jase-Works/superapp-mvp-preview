@@ -245,3 +245,12 @@ body.app-body{background:radial-gradient(1200px 700px at 70% 20%,#16302A 0%,#0B1
 .mg-bar b{font-size:16px;font-weight:900;color:var(--navy)}
 .mg-bar .pill{margin-left:auto}
 .mg-back{font-size:12.5px;font-weight:800;color:var(--green-d);cursor:pointer}
+
+/* v12：週末城市任務 → 地圖點亮（示意底圖用的色塊；Google 地圖時改用 Circle＋標籤） */
+.q-area{position:absolute;border-radius:50%;background:rgba(100,116,139,.28);border:2px dashed rgba(100,116,139,.7);display:flex;align-items:center;justify-content:center;text-align:center}
+.q-area span{font-size:13px;font-weight:900;color:#475569;line-height:1.3}
+.q-area small{font-size:10.5px;font-weight:700}
+.q-area.on{background:rgba(240,146,42,.38);border:2px solid #F0922A;box-shadow:0 0 24px rgba(240,146,42,.55)}
+.q-area.on span{color:#9A4A06}
+.q-lab{background:#fff;color:#475569;font-size:11.5px;font-weight:900;border-radius:999px;padding:4px 9px;box-shadow:0 2px 8px rgba(15,23,42,.2);white-space:nowrap;transform:translateY(50%)}
+.q-lab.on{background:#F0922A;color:#fff}
