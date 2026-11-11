@@ -345,8 +345,11 @@ def({
 
 /* 替你做過的事：系統替市民做的動作與用到的資料（也是給政府的稽核紀錄）。內容對應其他情境的故事，皆為示意。 */
 const DID_TYPE = { '提醒': 'p-blue', '帶入資料': 'p-orange', '送出': 'p-green', '續購': 'p-gray' };
+/* 第一筆依 F-05 是否續購切換：續購後記「續購」，還沒續購只記到期提醒 */
+const DID_RENEWED = { tm: '11/12 08:00', ty: '續購', t: '定期票一鍵續購，前往 MeNGo 付款（付款在 MeNGo 完成）', fresh: true };
+const DID_REMIND = { tm: '11/12 08:00', ty: '提醒', t: '定期票 3 天後到期提醒（尚未續購）' };
+const didList = () => [STATE.renewed ? DID_RENEWED : DID_REMIND, ...DID];
 const DID = [
-  { tm: '11/12 08:00', ty: '續購', t: '定期票一鍵續購，前往 MeNGo 付款（付款在 MeNGo 完成）' },
   { tm: '11/12 07:05', ty: '提醒', t: '通勤路線施工提醒：博愛二路 9:00 起封閉一線道' },
   { tm: '11/12 06:58', ty: '提醒', t: '慣用公車誤點，建議改搭捷運紅線' },
   { tm: '11/9', ty: '送出', t: '拍照陳情已送出，案號 KH-1999-20261109-088', data: '手機號碼、所在位置' },
@@ -413,9 +416,9 @@ def({
         <div class="me-h">🗂 替你做過的事</div>
         <div class="me-card" data-k="did">
           <div class="small" style="padding:10px 2px 2px">系統替你做的每一件事和用到的資料，都記在這裡</div>
-          ${DID.map((d, i) => `<div class="did-row">
+          ${didList().map((d, i) => `<div class="did-row">
             <div class="did-tm">${d.tm}</div>
-            <div class="did-bd"><div class="did-h"><span class="pill ${DID_TYPE[d.ty]}">${d.ty}</span>${i === 0 && STATE.renewed ? '<span class="pill p-green">剛剛</span>' : ''}</div>
+            <div class="did-bd"><div class="did-h"><span class="pill ${DID_TYPE[d.ty]}">${d.ty}</span>${d.fresh ? '<span class="pill p-green">剛剛</span>' : ''}</div>
               <div class="did-t">${d.t}</div>${d.data ? `<div class="did-d">用到的資料：${d.data}</div>` : ''}</div>
             <span class="did-no" data-notme="${i}">這不是我</span>
           </div>`).join('')}
