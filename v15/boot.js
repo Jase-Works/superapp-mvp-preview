@@ -41,6 +41,9 @@ function mapBadge() {
     ? '🗺️ 地圖來源：<b>Google 地圖</b>'
     : `⚠️ 地圖來源：<b>示意地圖</b><br><span>Google 地圖沒有載入成功，請重新整理</span>`;
   b.classList.toggle('bad', !GM.ok);
+  /* 頁尾的地圖著作權跟著實際載入的底圖走：Google 地圖成功才寫 Google，退回示意地圖才寫 OpenStreetMap */
+  const cr = document.getElementById('mapCredit');
+  if (cr) cr.textContent = GM.ok ? '地圖 © Google' : '地圖 © OpenStreetMap contributors';
 }
 document.addEventListener('gm-fail', mapBadge);
 GM.ready.then(() => { mapBadge(); go(SCENES[Q.get('s')] ? Q.get('s') : 'home'); });
