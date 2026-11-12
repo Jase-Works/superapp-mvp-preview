@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>City Super APP · 第一版 MVP 互動示意</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="motion.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chat.css">
+<link rel="stylesheet" href="skin.css">
+</head>
+<body class="app-body">
+<div class="stage">
+  <aside class="side">
+    <div class="side-brand"><span class="logo">⬢</span> City Super APP</div>
+    <p class="side-tag">一個 App，辦完整座城市的事；而且它比你更早想到</p>
+    <nav class="side-nav" id="sideNav"></nav>
+    <div class="side-ctrl"><button id="btnReplay">↻ 這個情境重來一次</button></div>
+    <div class="side-note" id="sideNote"></div>
+  </aside>
+  <div class="phone-wrap">
+    <div class="phone" id="phone">
+      <div class="notch"></div>
+      <div class="scr" id="screen"></div>
+    </div>
+    <div class="phone-hint" id="hint">👆 點畫面上亮起來的地方，或點選項推進流程</div>
+  </div>
+</div>
+<footer class="app-foot">天氣、案號、人名、店家、跨城介接皆為示意　｜　地圖 © OpenStreetMap contributors　｜　功能範圍以 PRD v5 §6 為準　｜　產品組合管理課 · 2026/11</footer>
+<script src="../maps_key.js"></script>
+<script src="core.js"></script>
+<script src="city_wallet_me.js"></script>
+<script src="screens.js"></script>
+<script src="quest.js"></script>
+<script src="ask.js"></script>
+<script src="gmap.js"></script>
+<script src="gmap_scenes.js"></script>
+<script src="boot.js"></script>
+</body>
+</html>
