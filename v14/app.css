@@ -1,0 +1,353 @@
+/* City Super APP · MVP 單手機互動示意（疊在 base.css / motion.css 之上）
+   版面參考 demo_mockup_v2：左側情境清單＋中間一支可操作的手機。
+   首頁城市切換參考 Apple 天氣；憑證夾參考 Apple 錢包。
+   動畫只動 transform 與 opacity，尊重 prefers-reduced-motion。 */
+
+/* ---------- 舞台 ---------- */
+body.app-body{background:radial-gradient(1200px 700px at 70% 20%,#16302A 0%,#0B1513 55%,#070D0C 100%);min-height:100vh}
+.stage{max-width:1180px;margin:0 auto;padding:36px 32px 12px;display:flex;gap:56px;justify-content:center;align-items:flex-start}
+.side{width:330px;flex:none;padding-top:20px}
+.side-brand{font-size:24px;font-weight:800;display:flex;align-items:center;gap:10px}
+.side-brand .logo{color:#7C8CFF;font-size:22px}
+.side-tag{color:#9FB2AC;font-size:14px;margin:8px 0 18px;line-height:1.55}
+.side-nav{display:flex;flex-direction:column;gap:8px}
+.nav-it{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:inherit;color:#E6EEF0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 14px;font-size:15px;cursor:pointer;transition:background .18s,border-color .18s,transform .12s var(--eo)}
+.nav-it:hover{background:rgba(255,255,255,.07)}
+.nav-it:active{transform:scale(.98)}
+.nav-it.on{border-color:#2346D8;background:rgba(35,70,216,.14)}
+.nav-it .no{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.nav-it.on .no{background:#2346D8;border-color:#2346D8;color:#fff}
+.nav-it .tag{margin-left:auto;font-size:11px;color:#C9D6D2;background:rgba(255,255,255,.1);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.nav-it .tag.new{background:#2346D8;color:#fff}
+.side-ctrl{display:flex;gap:8px;margin-top:18px}
+.side-ctrl button{flex:1;font-family:inherit;font-size:13.5px;font-weight:800;border-radius:11px;padding:9px 6px;border:1.5px solid #2346D8;background:transparent;color:#9FB3FF;cursor:pointer;transition:transform .12s var(--eo)}
+.side-ctrl button.pri{background:#2346D8;color:#fff}
+.side-ctrl button:active{transform:scale(.97)}
+.side-note{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;color:#B9C8C3;font-size:13.5px;line-height:1.65}
+.side-note b{color:#fff}
+.side-note .k{color:#9FB3FF;font-weight:800}
+.phone-wrap{display:flex;flex-direction:column;align-items:center}
+.phone-wrap .steps,.phone-wrap .steplab{width:384px}
+.phone-hint{margin-top:8px;color:#8FA39D;font-size:13px}
+.app-foot{max-width:1180px;margin:0 auto;padding:10px 32px 32px;color:#5E716B;font-size:12px;text-align:center}
+
+/* ---------- 手指示意 ---------- */
+.finger{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(15,23,42,.18);box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none;z-index:50;opacity:0;transition:transform .5s var(--io),opacity .2s var(--eo)}
+.finger.show{opacity:1}
+.finger::after{content:"";position:absolute;inset:8px;border-radius:50%;background:rgba(255,255,255,.7);transition:transform .12s var(--eo)}
+.finger.down::after{transform:scale(.6)}
+.finger.drag{transition:transform .6s cubic-bezier(.45,0,.2,1),opacity .2s}
+
+/* ---------- 首頁：城市頁（Apple 天氣式） ---------- */
+.wx{position:absolute;inset:0;overflow:hidden;color:#fff}
+.wx-bg{position:absolute;inset:0;opacity:0;transition:opacity .25s linear}
+.wx-bg.on{opacity:1}
+.wx-bg .cloud{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);filter:blur(18px);animation:drift 14s ease-in-out infinite alternate}
+.wx-bg .rain{position:absolute;inset:0;background-image:repeating-linear-gradient(105deg,rgba(255,255,255,0) 0 14px,rgba(255,255,255,.18) 14px 15px,rgba(255,255,255,0) 15px 34px);animation:rain .9s linear infinite;opacity:.7}
+@keyframes drift{from{transform:translateX(-20px)}to{transform:translateX(30px)}}
+@keyframes rain{from{transform:translateY(-34px)}to{transform:translateY(0)}}
+.pager{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;touch-action:pan-x pan-y}
+.pager::-webkit-scrollbar{display:none}
+.pager.dragging{scroll-snap-type:none;cursor:grabbing}
+.cpage{flex:0 0 100%;height:100%;scroll-snap-align:start;overflow-y:auto;scrollbar-width:none;padding:0 14px 150px;user-select:none}
+.cpage::-webkit-scrollbar{display:none}
+.wx .sb{color:#fff}
+.chead{text-align:center;padding:14px 0 14px;text-shadow:0 1px 6px rgba(0,0,0,.15)}
+.chead .loc{font-size:12px;font-weight:700;opacity:.9;letter-spacing:.04em}
+.chead .cname{font-size:32px;font-weight:500;margin-top:2px}
+.chead .temp{font-size:88px;font-weight:200;line-height:1;margin:2px 0 2px 18px}
+.chead .cond{font-size:17px;font-weight:600}
+.chead .hl{font-size:15px;font-weight:600;opacity:.9}
+.mod{background:rgba(16,36,82,.22);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:10px 13px 12px;margin-top:10px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.mod .mh{font-size:11.5px;font-weight:700;opacity:.75;letter-spacing:.04em;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.18);margin-bottom:9px}
+.mod .big{font-size:15px;font-weight:800}
+.mod .sm{font-size:12.5px;opacity:.85;margin-top:3px;line-height:1.5}
+.idrow{display:flex;align-items:center;gap:10px}
+.idrow .badge{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.2);flex:none}
+.idrow .st{margin-left:auto;font-size:11.5px;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.st.ok{background:#2346D8;color:#fff}
+.st.need{background:#fff;color:#13235A}
+.st.guest{background:rgba(255,255,255,.22);color:#fff}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px}
+.svc div{text-align:center;font-size:11.5px;font-weight:600;position:relative}
+.svc b{display:flex;width:48px;height:48px;margin:0 auto 4px;border-radius:14px;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:22px}
+.svc .lk{position:absolute;top:-4px;right:14px;font-size:10px;background:#fff;color:#13235A;border-radius:999px;padding:1px 5px;font-weight:800}
+.trow{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0}
+.trow + .trow{border-top:1px solid rgba(255,255,255,.14)}
+.trow .eta2{margin-left:auto;font-weight:800}
+.cfoot{font-size:10.5px;opacity:.65;text-align:center;margin-top:12px}
+.wx-bar{position:absolute;left:0;right:0;bottom:62px;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:4;background:rgba(10,24,58,.32);border-top:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.wx-bar .ic{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;color:#fff;transition:transform .12s var(--eo),background .15s}
+.wx-bar .ic:active{transform:scale(.9)}
+.wx-bar .ic:hover{background:rgba(255,255,255,.12)}
+.dots{display:flex;align-items:center;gap:7px}
+.dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4);transition:background .2s,transform .2s var(--eo)}
+.dots i.on{background:#fff;transform:scale(1.15)}
+.dots i.arrow{width:auto;height:auto;background:none;font-style:normal;font-size:10px;color:rgba(255,255,255,.45)}
+.dots i.arrow.on{color:#fff}
+.tabs.dark{background:rgba(6,14,32,.38);border-top:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);position:absolute;left:0;right:0;bottom:0;z-index:4;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tabs.dark .on{color:#fff}
+
+/* 城市清單（Apple 天氣的清單頁） */
+.clist{position:absolute;inset:0;background:#05070D;z-index:10;color:#fff;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:scale(1.03);transition:opacity .26s var(--eo),transform .3s var(--eo)}
+.clist.in{opacity:1;pointer-events:auto;transform:none}
+.clist .sb{color:#fff}
+.cl-top{display:flex;align-items:center;padding:4px 18px 0}
+.cl-top h2{font-size:30px;font-weight:800}
+.cl-top .more{margin-left:auto;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900}
+.cl-search{margin:10px 16px 6px;height:38px;border-radius:11px;background:rgba(255,255,255,.12);display:flex;align-items:center;gap:8px;padding:0 12px;font-size:14px;color:rgba(255,255,255,.55);cursor:text}
+.cl-search b{color:#fff;font-weight:600}
+.cl-search .cancel{margin-left:auto;color:#9FB3FF;font-weight:700;font-size:13px;display:none}
+.cl-search.typing .cancel{display:block}
+.cl-cards{flex:1;overflow-y:auto;padding:4px 16px 20px;scrollbar-width:none}
+.cl-cards::-webkit-scrollbar{display:none}
+.ccard{position:relative;height:108px;border-radius:18px;margin-top:10px;padding:12px 15px;display:flex;overflow:hidden;cursor:pointer;transition:transform .14s var(--eo),opacity .3s var(--eo)}
+.ccard:active{transform:scale(.97)}
+.ccard .l{flex:1;display:flex;flex-direction:column}
+.ccard .n{font-size:20px;font-weight:800}
+.ccard .s{font-size:12px;font-weight:600;opacity:.9}
+.ccard .c{margin-top:auto;font-size:12.5px;font-weight:600}
+.ccard .r{display:flex;flex-direction:column;align-items:flex-end}
+.ccard .t{font-size:44px;font-weight:300;line-height:1}
+.ccard .hl{margin-top:auto;font-size:12px;font-weight:600}
+.ccard .idt{position:absolute;left:15px;bottom:31px;font-size:11px;font-weight:800;background:rgba(0,0,0,.18);border-radius:999px;padding:2px 8px}
+.ccard.enter{opacity:0;transform:translateY(14px) scale(.96)}
+.cl-results{padding:0 16px;display:none}
+.cl-results.in{display:block}
+.res{padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.12);font-size:15px;cursor:pointer}
+.res small{display:block;font-size:11.5px;color:rgba(255,255,255,.55);margin-top:2px}
+.cl-dim{transition:opacity .2s}
+.cl-dim.off{opacity:.15}
+.zoom{position:absolute;z-index:12;border-radius:18px;transform-origin:0 0;transition:transform .42s var(--dr),opacity .25s var(--eo),border-radius .42s var(--dr);pointer-events:none}
+/* 新增城市預覽（Apple 天氣的「加入」頁） */
+.preview{position:absolute;inset:0;z-index:14;border-radius:0;overflow:hidden;color:#fff;transform:translateY(100%);transition:transform .42s var(--dr)}
+.preview.in{transform:none}
+.preview .pv-top{position:absolute;top:44px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 18px;font-size:15px;font-weight:700;z-index:2}
+.preview .pv-top span{cursor:pointer;padding:4px 2px}
+.preview .cpage{position:absolute;inset:0;padding-top:48px;padding-bottom:30px}
+
+/* ---------- 憑證夾（Apple 錢包式） ---------- */
+.wal{position:absolute;inset:0;background:#EEF1F6;display:flex;flex-direction:column}
+.wal-top{display:flex;align-items:center;padding:2px 18px 6px}
+.wal-top h2{font-size:28px;font-weight:900;color:var(--ink)}
+.wal-top .plus{margin-left:auto;width:32px;height:32px;border-radius:50%;background:#13235A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;cursor:pointer;transition:transform .12s var(--eo)}
+.wal-top .plus:active{transform:scale(.9)}
+.wal-sub{font-size:12px;color:var(--mute);padding:0 18px 4px}
+.stack{position:relative;flex:1;overflow:hidden}
+.pass{position:absolute;left:14px;right:14px;top:0;height:206px;border-radius:16px;color:#fff;padding:14px 16px;box-shadow:0 6px 18px rgba(15,23,42,.22),inset 0 1px 0 rgba(255,255,255,.25);cursor:pointer;transition:transform .45s var(--dr),opacity .3s var(--eo);overflow:hidden}
+.pass::before{content:"";position:absolute;right:-50px;top:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12)}
+.pass .ph{display:flex;align-items:center;gap:8px;position:relative}
+.pass .ph .iss{font-size:11.5px;font-weight:700;opacity:.85}
+.pass .ph .nm{font-size:15.5px;font-weight:900}
+.pass .ph .st2{margin-left:auto;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:rgba(255,255,255,.22)}
+.pass .pm{position:relative;margin-top:22px;display:flex;justify-content:space-between;align-items:flex-end}
+.pass .pm .lb{font-size:10.5px;opacity:.75}
+.pass .pm .vl{font-size:15px;font-weight:800;margin-top:2px}
+.pass .chip{position:absolute;left:16px;bottom:16px;width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#F6D776,#C99A2E);opacity:.9}
+.pass .pno{position:absolute;right:16px;bottom:16px;font-size:12px;font-weight:700;letter-spacing:.12em;opacity:.85}
+.pass.add{background:transparent !important;border:2px dashed #A9B6CC;color:#475569;box-shadow:none;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;height:120px}
+.pass.add::before{display:none}
+.pass.add b{font-size:15px}
+.pass.add small{font-size:11.5px;color:var(--mute)}
+.pass.deal{opacity:0}
+.detail{position:absolute;left:14px;right:14px;top:218px;opacity:0;transform:translateY(16px);transition:opacity .3s var(--eo),transform .35s var(--eo);pointer-events:none}
+.detail.in{opacity:1;transform:none;pointer-events:auto}
+.detail .qrbox{margin:0 auto;width:200px;padding:12px}
+.detail .qr{width:176px;height:176px}
+.detail .ring{width:46px;height:46px;right:-12px;top:-12px}
+.detail .ring span{width:36px;height:36px;font-size:13px}
+.detail .qr-note{text-align:center;font-size:12px;color:var(--mute);margin-top:8px}
+.dfields{background:#fff;border-radius:14px;padding:4px 14px;margin-top:10px;border:1px solid var(--line)}
+.dfields .field{font-size:12.5px;color:var(--ink)}
+.dfields .field:last-child{border-bottom:none}
+.dbtns{display:flex;gap:8px;margin-top:10px}
+.dbtns span{flex:1;text-align:center;border-radius:12px;padding:9px 4px;font-size:12.5px;font-weight:800;background:#fff;border:1px solid var(--line);color:var(--ink);cursor:pointer}
+.dbtns span.pri{background:#13235A;color:#fff;border-color:#13235A}
+.wal .toast{bottom:74px}
+.wal .tabs{position:relative}
+.sheet-list .opt{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:14px;padding:11px 12px;margin-top:8px;cursor:pointer;transition:border-color .15s,background .15s,transform .12s var(--eo)}
+.sheet-list .opt:active{transform:scale(.98)}
+.sheet-list .opt.sel{border-color:var(--green);background:#EEF2FF}
+.sheet-list .opt .ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex:none}
+.sheet-list .opt .tx{flex:1;font-size:14px;font-weight:800}
+.sheet-list .opt .tx small{display:block;font-weight:600;font-size:11.5px;color:var(--mute);margin-top:1px}
+.bsheet .note2{font-size:11px;color:#B45309;background:#FEF3C7;border-radius:10px;padding:6px 10px;margin-top:10px}
+
+@media (hover:hover) and (pointer:fine){
+  .ccard:hover{transform:translateY(-1px)}
+}
+@media (prefers-reduced-motion: reduce){
+  .finger,.pass,.detail,.clist,.preview,.zoom,.ccard{transition:opacity .2s !important}
+  .wx-bg .cloud,.wx-bg .rain{animation:none !important}
+}
+@media (max-width:900px){ .stage{flex-direction:column;align-items:center;gap:24px} .side{width:384px} }
+/* 還沒出現（透明）的遮罩、toast 不可以擋住點擊 */
+.fx:not(.in),.fx-down:not(.in),.fx-pop:not(.in){pointer-events:none}
+
+/* ---------- 底部分頁：中間的「問{城市}」 ---------- */
+.tabs{position:relative;z-index:4}
+.tabs .ask{position:relative;top:-12px;color:var(--green-d);font-weight:800}
+.tabs .ask i{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,#4A6CF0 0%,#2346D8 45%,#13235A 100%);color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 6px 16px rgba(35,70,216,.45);transition:transform .14s var(--eo)}
+.tabs .ask:active i{transform:scale(.94)}
+.tabs .ask.on i{box-shadow:0 0 0 4px rgba(35,70,216,.25),0 6px 16px rgba(35,70,216,.45)}
+.tabs.dark .ask{color:#fff}
+.tabs.dark .ask i{border-color:rgba(255,255,255,.85)}
+
+/* ---------- 出門頁：路線 ↔ 活動・景點 ---------- */
+.seg{position:absolute;left:50%;transform:translateX(-50%);z-index:3;display:flex;background:rgba(255,255,255,.96);border-radius:999px;padding:3px;box-shadow:0 4px 14px rgba(15,23,42,.16)}
+.seg span{padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:800;color:var(--slate);cursor:pointer;white-space:nowrap;transition:background .18s,color .18s}
+.seg span.on{background:var(--navy);color:#fff}
+
+/* ---------- 我的 ---------- */
+.mepg{background:#F2F4F8}
+.me-scroll{position:relative;flex:1;overflow-y:auto;scrollbar-width:none;padding:0 14px}
+.me-scroll::-webkit-scrollbar{display:none}
+.me-hero{display:flex;align-items:center;gap:12px;background:linear-gradient(140deg,#1A2F6E,#13235A);color:#fff;border-radius:18px;padding:14px;margin-top:4px}
+.me-hero .av{width:48px;height:48px;border-radius:50%;background:#2346D8;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900}
+.me-hero .nm{font-size:17px;font-weight:900}
+.me-hero .small{color:#AEBBDD}
+.me-h{font-size:12px;font-weight:800;color:var(--mute);margin:14px 4px 6px;letter-spacing:.04em}
+.me-card{background:#fff;border-radius:16px;padding:0 12px;border:1px solid var(--line);transition:box-shadow .2s}
+.me-row{display:flex;align-items:center;gap:10px;padding:10px 0}
+.me-row + .me-row{border-top:1px solid var(--line)}
+.me-row .mi{width:32px;height:32px;border-radius:9px;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.me-row .mt{flex:1;min-width:0}
+.me-row .mt b{display:block;font-size:13.5px;color:var(--ink)}
+.mepg{color:var(--ink)}
+.me-row .mt small{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:11.5px;font-weight:700;background:var(--green-bg);color:var(--green-d);border-radius:999px;padding:4px 10px}
+.me-sub{border-radius:12px;transition:box-shadow .2s}
+.lg{font-size:12px;color:var(--slate);padding:3px 0}
+.lg b{display:inline-block;width:78px;color:var(--ink);font-weight:700}
+.me-btn{flex:1;text-align:center;font-size:12px;font-weight:800;border-radius:10px;padding:8px 4px;background:#EEF2F7;color:var(--ink);cursor:pointer}
+.me-btn.red{background:var(--red-bg);color:#B83A52}
+.prog{height:6px;border-radius:3px;background:#E2E8F0;margin-top:10px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--green);transform-origin:left;transform:scaleX(.5);transition:transform .6s var(--eo)}
+.pl{display:flex;justify-content:space-between;font-size:10.5px;color:#94A3B8;margin-top:5px}
+.pl .on{color:var(--green-d);font-weight:800}
+.mepg.bigtext .me-scroll{zoom:1.15}
+.mepg .pill{white-space:nowrap;flex:none}
+
+/* v11：我的 → 替你做過的事（時間軸） */
+.did-row{display:flex;gap:10px;padding:10px 0;position:relative}
+.did-row + .did-row{border-top:1px solid var(--line)}
+.did-tm{width:62px;flex:none;font-size:11px;font-weight:800;color:var(--ink);padding-top:2px;line-height:1.35}
+.did-bd{flex:1;min-width:0;border-left:2px solid #DCE3F5;padding-left:10px}
+.did-h{display:flex;gap:4px;flex-wrap:wrap}
+.did-t{font-size:12.5px;color:var(--ink);font-weight:700;margin-top:4px;line-height:1.45}
+.did-d{font-size:11px;color:var(--mute);margin-top:3px}
+.did-no{flex:none;font-size:11px;color:var(--green-d);font-weight:700;cursor:pointer;padding-top:2px;white-space:nowrap}
+.did-no:active{opacity:.6}
+/* v11：MeNGo Mini App 續購畫面（示意） */
+.mg-page{z-index:20;background:var(--surf,#F5F7FB)}
+.mg-bar{display:flex;align-items:center;gap:8px;padding:6px 14px 10px;border-bottom:1px solid var(--line);background:#fff}
+.mg-bar b{font-size:16px;font-weight:900;color:var(--navy)}
+.mg-bar .pill{margin-left:auto}
+.mg-back{font-size:12.5px;font-weight:800;color:var(--green-d);cursor:pointer}
+
+/* v12：週末城市任務 → 地圖點亮（示意底圖用的色塊；Google 地圖時改用 Circle＋標籤） */
+.q-area{position:absolute;border-radius:50%;background:rgba(100,116,139,.28);border:2px dashed rgba(100,116,139,.7);display:flex;align-items:center;justify-content:center;text-align:center}
+.q-area span{font-size:13px;font-weight:900;color:#475569;line-height:1.3}
+.q-area small{font-size:10.5px;font-weight:700}
+.q-area.on{background:rgba(240,146,42,.38);border:2px solid #F0922A;box-shadow:0 0 24px rgba(240,146,42,.55)}
+.q-area.on span{color:#9A4A06}
+.q-lab{background:#fff;color:#475569;font-size:11.5px;font-weight:900;border-radius:999px;padding:4px 9px;box-shadow:0 2px 8px rgba(15,23,42,.2);white-space:nowrap;transform:translateY(50%)}
+.q-lab.on{background:#F0922A;color:#fff}
+
+/* v13：左邊清單第二層縮排 */
+.nav-it.sub{margin-left:24px;width:calc(100% - 24px);padding:8px 12px;font-size:13px;position:relative}
+.nav-it.sub::before{content:"";position:absolute;left:-13px;top:-9px;bottom:50%;width:9px;border-left:1.5px solid rgba(255,255,255,.22);border-bottom:1.5px solid rgba(255,255,255,.22);border-bottom-left-radius:8px}
+/* v13：首頁（不切換城市）*/
+.cpage.hm{position:absolute;inset:0;padding-bottom:84px;flex:none}
+.hm-quest{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.16);cursor:pointer}
+.hm-quest > b{font-size:20px}
+.hm-quest .t{display:block;font-size:13px;font-weight:800}
+.hm-quest small{display:block;font-size:11.5px;opacity:.85;margin-top:1px}
+.hm-quest .go{margin-left:auto;font-size:12px;font-weight:800;white-space:nowrap}
+.hm-ct{display:flex;gap:6px;margin-bottom:10px}
+.hm-ct span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:6px 2px;border-radius:999px;background:rgba(255,255,255,.16);cursor:pointer;white-space:nowrap}
+.hm-ct span.on{background:#fff;color:#13235A}
+.svc div[data-hs]{cursor:pointer}
+.svc div[data-hs]:active b{transform:scale(.94)}
+/* v13：App 內網頁（in-app web view，示意）*/
+.wv{z-index:20;background:#F5F7FB;color:var(--ink)}
+.wv-bar{display:flex;align-items:center;gap:10px;padding:6px 12px 8px;background:#fff;border-bottom:1px solid var(--line)}
+.wv-x{width:30px;height:30px;border-radius:50%;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;flex:none}
+.wv-t{flex:1;min-width:0;text-align:center}
+.wv-t b{display:block;font-size:15px}
+.wv-t small{display:block;font-size:10.5px;color:var(--mute);margin-top:1px}
+.wv-dots{width:30px;text-align:center;color:var(--mute);font-weight:900}
+.wv-load{height:3px;background:#E2E8F0;overflow:hidden}
+.wv-load i{display:block;height:100%;width:0;background:var(--primary,#2346D8);animation:wvload .9s ease-out forwards}
+@keyframes wvload{0%{width:0;opacity:1}85%{width:100%;opacity:1}100%{width:100%;opacity:0}}
+.wv-body{flex:1;overflow-y:auto;padding:16px 16px 0}
+.wv-hero{text-align:center;padding:6px 0 14px}
+.wv-hero .big{font-size:40px}
+.wv-hero b{display:block;font-size:18px;font-weight:900;margin-top:6px}
+.wv-hero small{display:block;font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.55}
+.wv-list{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0 12px}
+.wv-row{display:flex;align-items:center;gap:10px;padding:11px 0}
+.wv-row + .wv-row{border-top:1px solid var(--line)}
+.wv-row .ic{width:34px;height:34px;border-radius:10px;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.wv-row b{display:block;font-size:13.5px}
+.wv-row small{display:block;font-size:11.5px;color:var(--mute);margin-top:1px}
+.wv-acts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+
+/* v13：左邊清單第二層縮排 */
+.nav-it.sub{margin-left:24px;width:calc(100% - 24px);padding:8px 12px;font-size:13px;position:relative}
+.nav-it.sub::before{content:"";position:absolute;left:-13px;top:-9px;bottom:50%;width:9px;border-left:1.5px solid rgba(255,255,255,.22);border-bottom:1.5px solid rgba(255,255,255,.22);border-bottom-left-radius:8px}
+/* v13：首頁（不切換城市）*/
+.cpage.hm{position:absolute;inset:0;padding-bottom:84px;flex:none}
+.hm-quest{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.16);cursor:pointer}
+.hm-quest > b{font-size:20px}
+.hm-quest .t{display:block;font-size:13px;font-weight:800}
+.hm-quest small{display:block;font-size:11.5px;opacity:.85;margin-top:1px}
+.hm-quest .go{margin-left:auto;font-size:12px;font-weight:800;white-space:nowrap}
+.hm-ct{display:flex;gap:6px;margin-bottom:10px}
+.hm-ct span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:6px 2px;border-radius:999px;background:rgba(255,255,255,.16);cursor:pointer;white-space:nowrap}
+.hm-ct span.on{background:#fff;color:#13235A}
+.svc div[data-hs]{cursor:pointer}
+.svc div[data-hs]:active b{transform:scale(.94)}
+/* v13：App 內網頁（in-app web view，示意）*/
+.wv{z-index:20;background:#F5F7FB;color:var(--ink)}
+.wv-bar{display:flex;align-items:center;gap:10px;padding:6px 12px 8px;background:#fff;border-bottom:1px solid var(--line)}
+.wv-x{width:30px;height:30px;border-radius:50%;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;flex:none}
+.wv-t{flex:1;min-width:0;text-align:center}
+.wv-t b{display:block;font-size:15px}
+.wv-t small{display:block;font-size:10.5px;color:var(--mute);margin-top:1px}
+.wv-dots{width:30px;text-align:center;color:var(--mute);font-weight:900}
+.wv-load{height:3px;background:#E2E8F0;overflow:hidden}
+.wv-load i{display:block;height:100%;width:0;background:var(--primary,#2346D8);animation:wvload .9s ease-out forwards}
+@keyframes wvload{0%{width:0;opacity:1}85%{width:100%;opacity:1}100%{width:100%;opacity:0}}
+.wv-body{flex:1;overflow-y:auto;padding:16px 16px 0}
+.wv-hero{text-align:center;padding:6px 0 14px}
+.wv-hero .big{font-size:40px}
+.wv-hero b{display:block;font-size:18px;font-weight:900;margin-top:6px}
+.wv-hero small{display:block;font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.55}
+.wv-list{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0 12px}
+.wv-row{display:flex;align-items:center;gap:10px;padding:11px 0}
+.wv-row + .wv-row{border-top:1px solid var(--line)}
+.wv-row .ic{width:34px;height:34px;border-radius:10px;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.wv-row b{display:block;font-size:13.5px}
+.wv-row small{display:block;font-size:11.5px;color:var(--mute);margin-top:1px}
+.wv-acts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.wx .wv .sb{color:var(--ink)}
+
+/* v14：各城市服務捷徑改成白底卡片（原本半透明藍底，圖示和文字對比太低）*/
+.mod.hm-svc{background:#fff;border:0;color:var(--ink);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 8px 24px rgba(10,24,58,.18);padding:12px 12px 12px}
+.hm-svc .mh{color:var(--slate);opacity:1;border-bottom:0;padding-bottom:0;margin-bottom:10px;font-size:13px;font-weight:800;letter-spacing:0}
+.hm-svc .hm-ct{display:flex;gap:0;background:#EEF2F7;border-radius:12px;padding:3px;margin-bottom:12px}
+.hm-svc .hm-ct span{flex:1;background:transparent;color:var(--slate);font-size:12.5px;font-weight:700;padding:7px 2px;border-radius:9px}
+.hm-svc .hm-ct span.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(15,23,42,.15)}
+.hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hm-tile{background:#F5F7FB;border:1px solid #E6EBF3;border-radius:16px;padding:12px 4px 10px;text-align:center;cursor:pointer;transition:transform .12s var(--eo),background .15s}
+.hm-tile:active{transform:scale(.96);background:#EAF0FF}
+.hm-tile .ico{display:flex;width:46px;height:46px;margin:0 auto 7px;border-radius:14px;align-items:center;justify-content:center;font-size:24px}
+.hm-tile .t0{background:#E8EDFF}.hm-tile .t1{background:#E3F1EA}.hm-tile .t2{background:#FDEBEE}
+.hm-tile .t3{background:#FFF1DD}.hm-tile .t4{background:#E3F1FB}.hm-tile .t5{background:#EFE9FB}
+.hm-tile b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
+.hm-tile small{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;white-space:nowrap}
+.hm-tile.locked .ico{opacity:.55}
+.hm-tile.locked small{color:#B45309;font-weight:700}
+.hm-note{display:flex;gap:6px;align-items:flex-start;margin-top:12px;padding:8px 10px;border-radius:10px;background:#F5F7FB;font-size:11.5px;color:var(--slate);line-height:1.5}
