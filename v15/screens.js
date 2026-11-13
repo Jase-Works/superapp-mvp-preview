@@ -396,13 +396,17 @@ def({
     P.$('clock').textContent = '15:20'; ff.style.display = 'none';
     const n = await push('現在', '🌧️ 豪雨特報：住家附近可能積水', '鼎山街一帶感測器連續兩次超過警戒，建議把車移到地勢較高處。', '<div class="acts"><span class="pri" data-k="nav" style="cursor:pointer;background:#2346D8">導航到停車場</span><span>我知道了</span></div>');
     await sleep(400);
-    await tapOn(n.querySelector('[data-k="nav"]'), '車停路邊？點這裡導航到高處');
-    box.style.opacity = '.35'; on(P.$('navc'));
-    /* 隔天：週四晚上，每週一則的城市任務通知（點「看任務」進任務卡） */
-    await sleep(2800);
-    P.$('navc').classList.remove('in'); box.style.opacity = '1';
+    /* 豪雨之後有兩條路都能走到週四的城市任務：點「導航到停車場」看完導航卡再快轉，或不導航、直接快轉。 */
+    let navDone = false, ffDone = false;
+    n.querySelector('[data-k="nav"]').onclick = () => { if (navDone) return; navDone = true; box.style.opacity = '.35'; on(P.$('navc')); };
+    n.querySelector('.acts span:not(.pri)').onclick = () => { n.querySelector('.acts').innerHTML = '<span>好，我會自己注意</span>'; };
     ff.style.display = ''; ff.textContent = '⏩ 快轉到週四晚上';
-    await tapOn(ff, '');
+    ff.onclick = () => { ffDone = true; };
+    await guide(() => (navDone ? null : n.querySelector('[data-k="nav"]')), '', () => navDone || ffDone);
+    if (navDone && !ffDone) { await sleep(2800); P.$('navc').classList.remove('in'); box.style.opacity = '1'; }
+    await guide(() => ff, '', () => ffDone);
+    P.$('navc').classList.remove('in'); box.style.opacity = '1';
+    /* 隔天：週四晚上，每週一則的城市任務通知（點「看任務」進任務卡） */
     ff.style.display = 'none'; box.innerHTML = '';
     $screen.querySelector('.clock .d').textContent = '11 月 13 日 星期四'; P.$('clock').textContent = '20:00';
     const qn = await push('20:00', '🗺️ 本週城市任務：駁二港邊週末市集', '搭車到駁二、參加活動，集滿 3 章可得 20 點', '<div class="acts"><span class="pri" data-k="goq" style="cursor:pointer;background:#2346D8">看任務</span><span data-k="noq" style="cursor:pointer">先不要</span></div>', '城市任務');
